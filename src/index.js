@@ -1,8 +1,6 @@
 import "./pages/index.css";
-import { createCard, deleteCard, likeCard, handleImageClick } from "./components/card.js";
-import { closePopup, openPopup, fillProfileForm,
-         profileTitleName, profileDescription, nameInput, jobInput
- } from "./components/modal.js";
+import { createCard, deleteCard, likeCard } from "./components/card.js";
+import { closePopup, openPopup } from "./components/modal.js";
 import { initialCards } from "./components/cards.js"; // Импорт массива карточек
 
 // Объявление констант
@@ -34,6 +32,21 @@ function handleFormEditSubmit(evt) {
 
 formEditElement.addEventListener('submit', handleFormEditSubmit);
 //--------------------------------------------------------------------------------------
+// Вешает обработчик клика на карточку
+function handleImageClick(card, title, link) {
+    const cardImage = card.querySelector('.card__image');
+    cardImage.addEventListener('click', () => {
+        const popupTypeImage = document.querySelector('.popup_type_image');
+        const popupImage = popupTypeImage.querySelector('.popup__image');
+        const popupCaption = popupTypeImage.querySelector('.popup__caption');
+
+        popupImage.setAttribute('src', link);
+        popupImage.setAttribute('alt', title);
+        popupCaption.textContent = title;
+
+        openPopup(popupTypeImage);
+    });
+}
 // Обработка кнопки Сохранить в форме добавления карточки
 function handleFormAddSubmit(evt) {
   evt.preventDefault();
@@ -65,9 +78,9 @@ profileAddButton.addEventListener('click', () => {
 //Закрытие по крестику
 popupsClose.forEach((popupClose) => {
   popupClose.addEventListener('click', (evt) => {
-  const popup = evt.target.closest('.popup');
-  closePopup(popup);
-});
+    const popup = evt.target.closest('.popup');
+    closePopup(popup);
+  });
 });
 
 //Закрытие по оверлею
@@ -79,7 +92,17 @@ popupWrappers.forEach((item) => {
 
 popups.forEach(function(itemPopup) {
   itemPopup.addEventListener('click', (evt) => {
-  const popup = evt.target.closest('.popup');
-  closePopup(popup);
+    const popup = evt.target.closest('.popup');
+    closePopup(popup);
+  });
 });
-});
+
+const profileTitleName = document.querySelector('.profile__title');
+const profileDescription = document.querySelector('.profile__description');
+const nameInput = document.querySelector('.popup__input_type_name');
+const jobInput = document.querySelector('.popup__input_type_description');
+
+function fillProfileForm() {
+  nameInput.value = profileTitleName.textContent;
+  jobInput.value = profileDescription.textContent;
+}
