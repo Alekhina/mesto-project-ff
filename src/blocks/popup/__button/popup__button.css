@@ -8,6 +8,7 @@
   align-items: center;
   justify-content: center;
   background: #000;
+  /* background: transparent; */
   border-radius: 2px;
   border: none;
   transition: visibility 0s, background 0.3s;
@@ -24,4 +25,17 @@
     font-size: 14px;
     line-height: 17px;
   }
+}
+
+/* TODO разнести все что ниже по файлам */
+.popup__button_inactive {
+  background: transparent;
+  color: rgb(0, 0, 0, 0.2);
+  border: 1px solid rgb(0, 0, 0, 0.2);
+  /* cursor: default; */
+}
+
+.popup__button_inactive:hover {
+  background: transparent;
+  cursor: default;
 }
