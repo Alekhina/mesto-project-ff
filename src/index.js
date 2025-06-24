@@ -3,10 +3,7 @@ import { createCard, deleteCard, likeCard } from "./components/card.js";
 import { closePopup, openPopup } from "./components/modal.js";
 import { getUserInfo, getInitialCards, patchUserInfo,
         postCard, deleteCardFromServer, patchAvatar } from "./components/api.js";
-
-// export { user_id }
-// import { resolve } from "core-js/fn/promise";
-// import { initialCards } from "./components/cards.js"; // Импорт массива карточек
+import { clearValidation, enableValidation } from "./components/validation.js";
 
 // Объявление констант
 const container = document
@@ -24,50 +21,59 @@ const profileImage = document.querySelector('.profile__image');
 const popupsClose = document.querySelectorAll(".popup__close");
 const popupWrappers = document.querySelectorAll(".popup__content");
 const popups = document.querySelectorAll(".popup");
-
-// Добавляем начальные карточки
-// initialCards.forEach(function(element) {
-//   container.append(createCard(element, deleteCard, likeCard, handleImageClick));
-// });
-
+const popupTypeEdit = document.querySelector('.popup_type_edit');
+const popupTypeImage = document.querySelector('.popup_type_image');
+const popupTypeNewCard = document.querySelector('.popup_type_new-card');
+const popupTypeAvatar = document.querySelector('.popup_type_avatar');
+const formSelector = '.popup__form';
+const inputSelector = '.popup__input';
+const formSet = '.form__set';
+const submitButtonSelector = '.popup__button';
+const inactiveButtonClass = 'popup__button_inactive';
+const inputErrorClass = 'popup__input_type_error';
+const errorClass = 'popup__input-error_active';
 //-----------------------------------------------------------------------------------------------------
 //Обратботка кнопки Сохранить в форме редактирования
 function handleFormEditSubmit(evt) {
   evt.preventDefault();
-  // profileTitleName.textContent = nameInput.value;
-  // profileDescription.textContent = jobInput.value;
-  const popup = evt.target.closest(".popup");
-  closePopup(popup);
-  renderLoading(true);
+
+  let button = evt.target.querySelector('.popup__button');
+  renderLoading(true, button);
   patchUserInfo(nameInput.value, jobInput.value)
     .then((data) => {
        profileTitleName.textContent = data.name;
        profileDescription.textContent = data.about;
+       closePopup(popupTypeEdit);
     })
     .catch((error) => {
       console.error("Произошла ошибка при редактировании имени:", error);
     })
     .finally(() => {
-      renderLoading(false);
+      renderLoading(false, button);
     }); 
 }
 
 formEditElement.addEventListener("submit", handleFormEditSubmit);
 //--------------------------------------------------------------------------------------
 // Вешает обработчик клика на карточку
-function handleImageClick(card, title, link) {
-  const cardImage = card.querySelector(".card__image");
-  cardImage.addEventListener("click", () => {
-    const popupTypeImage = document.querySelector(".popup_type_image");
-    const popupImage = popupTypeImage.querySelector(".popup__image");
-    const popupCaption = popupTypeImage.querySelector(".popup__caption");
+function handleImageClick(title, link) {
+  // const cardImage = card.querySelector(".card__image");
+  // cardImage.addEventListener("click", () => {
+  //   const popupImage = popupTypeImage.querySelector(".popup__image");
+  //   const popupCaption = popupTypeImage.querySelector(".popup__caption");
 
-    popupImage.setAttribute("src", link);
-    popupImage.setAttribute("alt", title);
-    popupCaption.textContent = title;
+  //   popupImage.setAttribute("src", link);
+  //   popupImage.setAttribute("alt", title);
+  //   popupCaption.textContent = title;
 
-    openPopup(popupTypeImage);
-  });
+  //   openPopup(popupTypeImage);
+  // });
+  const popupImage = popupTypeImage.querySelector(".popup__image");
+  const popupCaption = popupTypeImage.querySelector(".popup__caption");
+  popupImage.setAttribute("src", link);
+  popupImage.setAttribute("alt", title);
+  popupCaption.textContent = title;
+  openPopup(popupTypeImage);
 }
 // Обработка кнопки Сохранить в форме добавления карточки
 function handleFormAddSubmit(evt) {
@@ -76,26 +82,24 @@ function handleFormAddSubmit(evt) {
     name: cardNameInput.value,
     link: cardUrlInput.value,
   };
-  const popup = evt.target.closest(".popup");
-  const button = popup.querySelector(".popup__button");
+  const button = popupTypeNewCard.querySelector(".popup__button");
   button.disabled = true;
   button.classList.add("popup__button_inactive");
-  closePopup(popup);
-  // container.prepend(
-  //   createCard(newCard, deleteCard, likeCard, handleImageClick, userId)
-  // );
 
-  cardNameInput.value = "";
-  cardUrlInput.value = "";
-  renderLoading(true);
+  button = evt.target.querySelector('.popup__button');
+  renderLoading(true, button);
   postCard(newCard)
     .then((data) => {
       container.prepend(
         createCard(data, deleteCard, likeCard, handleImageClick, userId)
       );
+      cardNameInput.value = "";
+      cardUrlInput.value = "";
+      closePopup(popupTypeNewCard);
     })
+    .catch((err) => console.error('Ошибка при добавлении карточки:', err))
     .finally(() => {
-      renderLoading(false);
+      renderLoading(false, button);
     }); 
 }
 
@@ -103,40 +107,43 @@ formAddElement.addEventListener("submit", handleFormAddSubmit);
 
 function handleFormAvatarSubmit(evt) {
   evt.preventDefault();
-  const popup = evt.target.closest(".popup");
-  renderLoading(true);
+  button = evt.target.querySelector('.popup__button');
+  renderLoading(true, button);
   patchAvatar(avatarLinkInput)
     .then((data) => {
-      const profileImage = document.querySelector(".profile__image");
       profileImage.style.backgroundImage = `url(${user.avatar})`;
+      closePopup(popupTypeAvatar);
     })
-    .catch((err) => {
-    console.log(err); // выводим ошибку в консоль
-    })
+    .catch((err) => console.error('Ошибка при смене аватара:', err))
     .finally(() => {
-      renderLoading(false);
+      renderLoading(false, button);
     }); 
-  closePopup(popup);
 }
 formAvatarElement.addEventListener("submit", handleFormAvatarSubmit);
 //------------------------------------------------------------------------------------------------
 // Открытие попапа редактирования
 profileEditButton.addEventListener("click", () => {
-  openPopup(document.querySelector(".popup_type_edit"));
+  openPopup(popupTypeEdit);
   fillProfileForm();
-  clearValidation(formEditElement);
+  clearValidation(formEditElement, 
+    formSelector, inputSelector, submitButtonSelector, 
+    inactiveButtonClass, inputErrorClass, errorClass);
 });
 
 // Открытие попапа добавления картинки
 profileAddButton.addEventListener("click", () => {
-  openPopup(document.querySelector(".popup_type_new-card"));
-  clearValidation(formAddElement);
+  openPopup(popupTypeNewCard);
+  clearValidation(formAddElement, 
+    formSelector, inputSelector, submitButtonSelector, 
+    inactiveButtonClass, inputErrorClass, errorClass);
 });
 
 // Открытие попапа редактирования аватарки
 profileImage.addEventListener("click", () => {
-  openPopup(document.querySelector('.popup_type_avatar'));
-  clearValidation(formAvatarElement);
+  openPopup(popupTypeAvatar);
+  clearValidation(formAvatarElement, 
+    formSelector, inputSelector, submitButtonSelector, 
+    inactiveButtonClass, inputErrorClass, errorClass);
 })
 
 //Закрытие по крестику
@@ -171,23 +178,15 @@ function fillProfileForm() {
   jobInput.value = profileDescription.textContent;
 }
 
-function renderLoading(isLoading) {
+function renderLoading(isLoading, button) {
   if (isLoading) {
-    const buttons = document.querySelectorAll('.popup__button');
-    buttons.forEach((button) => {
-      button.textContent = "Сохранение...";
-    })
+    button.textContent = "Сохранение...";
   }
   else {
-    const buttons = document.querySelectorAll('.popup__button');
-    buttons.forEach((button) => {
-      button.textContent = "Сохранить";
-    })
+    button.textContent = "Сохранить";
   }
 }
-
 //------------------------------------------------------------------------------------------------------------
-
 let userId = "";
 
 Promise.all([getUserInfo(), getInitialCards()])
@@ -203,87 +202,8 @@ Promise.all([getUserInfo(), getInitialCards()])
     const profileImage = document.querySelector(".profile__image");
     profileImage.style.backgroundImage = `url(${user.avatar})`;
   })
-
+  .catch((err) => console.error('Ошибка при загрузке информации о пользователе:', err));
 //--------------------------------------------------------------------------------------------------------
-//ВАЛИДАЦИЯ
-
-const showInputError = (formElement, inputElement, errorMessage) => {
-  const errorElement = formElement.querySelector(`.${inputElement.id}-error`);
-  inputElement.classList.add("popup__input_type_error");
-  errorElement.textContent = errorMessage;
-  errorElement.classList.add("popup__input-error_active");
-};
-
-const hideInputError = (formElement, inputElement) => {
-  const errorElement = formElement.querySelector(`.${inputElement.id}-error`);
-  inputElement.classList.remove("popup__input_type_error");
-  errorElement.classList.remove("popup__input-error_active");
-  errorElement.textContent = "";
-};
-
-const checkInputValidity = (formElement, inputElement) => {
-  if (inputElement.validity.patternMismatch) {
-    inputElement.setCustomValidity(
-      "Разрешены только латинские, кириллические буквы, знаки дефиса и пробелы."
-    );
-  } else {
-    inputElement.setCustomValidity("");
-  }
-  if (!inputElement.validity.valid) {
-    showInputError(formElement, inputElement, inputElement.validationMessage);
-  } else {
-    hideInputError(formElement, inputElement);
-  }
-};
-
-const hasInvalidInput = (inputList) => {
-  return inputList.some((inputElement) => {
-    return !inputElement.validity.valid;
-  });
-};
-
-const toggleButtonState = (inputList, buttonElement) => {
-  if (hasInvalidInput(inputList)) {
-    buttonElement.disabled = true;
-    buttonElement.classList.add("popup__button_inactive");
-  } else {
-    buttonElement.disabled = false;
-    buttonElement.classList.remove("popup__button_inactive");
-  }
-};
-
-const setEventListeners = (formElement) => {
-  const inputList = Array.from(formElement.querySelectorAll(".popup__input"));
-  const buttonElement = formElement.querySelector(".popup__button");
-  toggleButtonState(inputList, buttonElement);
-  inputList.forEach((inputElement) => {
-    inputElement.addEventListener("input", function () {
-      checkInputValidity(formElement, inputElement);
-      toggleButtonState(inputList, buttonElement);
-    });
-  });
-};
-
-const enableValidation = () => {
-  const formList = Array.from(document.querySelectorAll(".popup__form"));
-  formList.forEach((formElement) => {
-    formElement.addEventListener("submit", function (evt) {
-      evt.preventDefault();
-    });
-    const fieldsetList = Array.from(formElement.querySelectorAll(".form__set"));
-    fieldsetList.forEach((fieldSet) => {
-      setEventListeners(fieldSet);
-    });
-  });
-};
-
-const clearValidation = (formElement) => {
-  const buttonElement = formElement.querySelector(".popup__button");
-  const inputList = Array.from(formElement.querySelectorAll(".popup__input"));
-  inputList.forEach(function (inputElement) {
-    hideInputError(formElement, inputElement);
-  });
-  toggleButtonState(inputList, buttonElement);
-};
-
-enableValidation();
+//Валидация
+enableValidation(formSelector, inputSelector, submitButtonSelector, 
+  inactiveButtonClass, inputErrorClass, errorClass, formSet);
