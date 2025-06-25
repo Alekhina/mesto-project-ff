@@ -25,19 +25,25 @@ const popupTypeEdit = document.querySelector('.popup_type_edit');
 const popupTypeImage = document.querySelector('.popup_type_image');
 const popupTypeNewCard = document.querySelector('.popup_type_new-card');
 const popupTypeAvatar = document.querySelector('.popup_type_avatar');
-const formSelector = '.popup__form';
-const inputSelector = '.popup__input';
-const formSet = '.form__set';
-const submitButtonSelector = '.popup__button';
-const inactiveButtonClass = 'popup__button_inactive';
-const inputErrorClass = 'popup__input_type_error';
-const errorClass = 'popup__input-error_active';
-//-----------------------------------------------------------------------------------------------------
+const popupImage = popupTypeImage.querySelector(".popup__image");
+const popupCaption = popupTypeImage.querySelector(".popup__caption");
+
+const configValidation = {
+  formSelector: '.popup__form',
+  inputSelector: '.popup__input',
+  formSet: '.form__set',
+  submitButtonSelector: '.popup__button',
+  inactiveButtonClass: 'popup__button_inactive',
+  inputErrorClass: 'popup__input_type_error',
+  errorClass: 'popup__input-error_active'
+}
+
+//--------------------------------------------------------------------------------------------------
 //Обратботка кнопки Сохранить в форме редактирования
 function handleFormEditSubmit(evt) {
   evt.preventDefault();
 
-  let button = evt.target.querySelector('.popup__button');
+  const button = evt.target.querySelector('.popup__button');
   renderLoading(true, button);
   patchUserInfo(nameInput.value, jobInput.value)
     .then((data) => {
@@ -57,19 +63,6 @@ formEditElement.addEventListener("submit", handleFormEditSubmit);
 //--------------------------------------------------------------------------------------
 // Вешает обработчик клика на карточку
 function handleImageClick(title, link) {
-  // const cardImage = card.querySelector(".card__image");
-  // cardImage.addEventListener("click", () => {
-  //   const popupImage = popupTypeImage.querySelector(".popup__image");
-  //   const popupCaption = popupTypeImage.querySelector(".popup__caption");
-
-  //   popupImage.setAttribute("src", link);
-  //   popupImage.setAttribute("alt", title);
-  //   popupCaption.textContent = title;
-
-  //   openPopup(popupTypeImage);
-  // });
-  const popupImage = popupTypeImage.querySelector(".popup__image");
-  const popupCaption = popupTypeImage.querySelector(".popup__caption");
   popupImage.setAttribute("src", link);
   popupImage.setAttribute("alt", title);
   popupCaption.textContent = title;
@@ -86,7 +79,6 @@ function handleFormAddSubmit(evt) {
   button.disabled = true;
   button.classList.add("popup__button_inactive");
 
-  button = evt.target.querySelector('.popup__button');
   renderLoading(true, button);
   postCard(newCard)
     .then((data) => {
@@ -107,7 +99,7 @@ formAddElement.addEventListener("submit", handleFormAddSubmit);
 
 function handleFormAvatarSubmit(evt) {
   evt.preventDefault();
-  button = evt.target.querySelector('.popup__button');
+  const button = evt.target.querySelector('.popup__button');
   renderLoading(true, button);
   patchAvatar(avatarLinkInput)
     .then((data) => {
@@ -125,25 +117,19 @@ formAvatarElement.addEventListener("submit", handleFormAvatarSubmit);
 profileEditButton.addEventListener("click", () => {
   openPopup(popupTypeEdit);
   fillProfileForm();
-  clearValidation(formEditElement, 
-    formSelector, inputSelector, submitButtonSelector, 
-    inactiveButtonClass, inputErrorClass, errorClass);
+  clearValidation(formEditElement, configValidation);
 });
 
 // Открытие попапа добавления картинки
 profileAddButton.addEventListener("click", () => {
   openPopup(popupTypeNewCard);
-  clearValidation(formAddElement, 
-    formSelector, inputSelector, submitButtonSelector, 
-    inactiveButtonClass, inputErrorClass, errorClass);
+  clearValidation(formAddElement, configValidation);
 });
 
 // Открытие попапа редактирования аватарки
 profileImage.addEventListener("click", () => {
   openPopup(popupTypeAvatar);
-  clearValidation(formAvatarElement, 
-    formSelector, inputSelector, submitButtonSelector, 
-    inactiveButtonClass, inputErrorClass, errorClass);
+  clearValidation(formAvatarElement, configValidation);
 })
 
 //Закрытие по крестику
@@ -205,5 +191,4 @@ Promise.all([getUserInfo(), getInitialCards()])
   .catch((err) => console.error('Ошибка при загрузке информации о пользователе:', err));
 //--------------------------------------------------------------------------------------------------------
 //Валидация
-enableValidation(formSelector, inputSelector, submitButtonSelector, 
-  inactiveButtonClass, inputErrorClass, errorClass, formSet);
+enableValidation(configValidation);
